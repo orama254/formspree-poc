@@ -1,10 +1,20 @@
+import { useState } from 'react';
+
 import {useForm, ValidationError} from '@formspree/react';
 
-// import { CheckCircleIcon, XMarkIcon } from '@heroicons/react/20/solid'
+import ReCAPTCHA from "react-google-recaptcha";
 
 export default function ContactForm() {
 
+  const [captchaComplete, setCaptchaComplete] = useState<boolean>(false);
+
     const [state, handleSubmit] = useForm(process.env.NEXT_PUBLIC_FORMSPREE_ID!);
+
+    const handleRecaptchaResult = (result: string | null) => {
+        if (result) {
+            setCaptchaComplete(true);
+        }
+    }
 
     if (state.succeeded) {
         return <p className='text-xl font-medium text-green-800'>Thank you for your submission</p>
@@ -34,11 +44,24 @@ export default function ContactForm() {
                 required
               />
             <ValidationError prefix="Message" field="message" errors={state.errors} />
+
+            <ReCAPTCHA
+                sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY!}
+                onChange={handleRecaptchaResult}
+            />
+            {captchaComplete ? 
             <button type="submit" disabled={state.submitting}
             className="rounded-md border border-gray-300 bg-white py-2 px-3 text-sm font-medium leading-4 text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
             >
                 Submit
-            </button>
+            </button> : 
+            <button 
+                  type="submit" 
+                  disabled
+                  className="rounded-md border border-gray-300 bg-white py-2 px-3 text-sm font-medium leading-4 text-gray-700 shadow-sm"
+                  >
+                  Submit
+              </button>}
             <ValidationError errors={state.errors} />
             </form>
     </>
